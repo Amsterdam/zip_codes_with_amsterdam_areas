@@ -1,0 +1,20 @@
+version: '3'
+services:
+  database:
+    image: amsterdam/postgres11
+    environment:
+      POSTGRES_HOST: localhost
+      POSTGRES_DB: zip_codes_areas
+      POSTGRES_USER: zip_codes_areas
+      POSTGRES_PASSWORD: insecure
+    ports:
+      - "5444:5432"
+  importer:
+    build: .
+    links:
+      - database
+    environment:
+      DATABASE_USERNAME: zip_codes_areas
+      DATABASE_PASSWORD: insecure
+    command: >
+      bash -c "/app/import.sh"  

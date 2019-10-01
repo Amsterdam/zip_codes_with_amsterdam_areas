@@ -1,0 +1,5 @@
+logger>=1.4
+psycopg2>=2.7.3.2
+PyYAML>=3.13
+requests>=2.20.0
+requests-cache>=0.4.13
