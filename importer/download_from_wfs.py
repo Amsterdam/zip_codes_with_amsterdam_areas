@@ -207,7 +207,7 @@ def psycopg_connection_string(docker_compose_path="docker-compose.yml", docker_p
     """
 
     config = yaml.load(open(docker_compose_path), Loader=yaml.SafeLoader)
-    env = config["services"]["database"]["environment"]
+    env = config["services"]["importer"]["environment"]
 
     if docker_port == 1:
         port = re.findall('\d+', config["services"]["database"]["ports"][0].split(':')[1])[0]

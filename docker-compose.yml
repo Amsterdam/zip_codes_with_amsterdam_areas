@@ -16,7 +16,7 @@ services:
     environment:
       DATABASE_HOST: localhost
       DATABASE_NAME: zip_codes_areas
-      DATABASE_USERNAME: zip_codes_areas
+      DATABASE_USER: zip_codes_areas
       DATABASE_PASSWORD: insecure
     command: >
       bash -c "/app/import.sh"  
