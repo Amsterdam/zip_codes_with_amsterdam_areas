@@ -214,14 +214,14 @@ def psycopg_connection_string(docker_compose_path="docker-compose.yml", docker_p
         host = 'database'
     else:
         port = re.findall('\d+', config["services"]["database"]["ports"][0].split(':')[0])[0]
-        host = env['POSTGRES_HOST']
+        host = env['DATABASE_HOST']
 
     pg_config = 'host={} port={} user={} dbname={} password={}'.format(
             host,
             port,
-            env['POSTGRES_USER'],
-            env['POSTGRES_DB'],
-            env['POSTGRES_PASSWORD']
+            env['DATABASE_USER'],
+            env['DATABASE_NAME'],
+            env['DATABASE_PASSWORD']
         )
     # logger.info("pg_string obtained from {}".format(docker_compose_path))
     return pg_config
