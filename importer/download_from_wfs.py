@@ -219,18 +219,26 @@ def get_layer_from_wfs(url_wfs, layer_name, srs, filter_properties, startindex, 
     return response
 
 
-def load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, overwrite_append):
+def load_geojson_to_postgres(full_path, layer_name, srs, docker_compose_path, overwrite_append):
     """
     Get a geojson and load it into postgres using ogr2ogr
-    and the docker compose used environment fields.
+    and the docker compose file is used to get the login environment fields.
+
+    The Schema is default to public or must be created beforehand.
     """
-    pg_str =psycopg_connection_string(docker_postgres)
+
+    config = yaml.load(open(docker_compose_path), Loader=yaml.SafeLoader)
+    env = config["services"]["importer"]["environment"]
+
+    schema = os.getenv('DATABASE_SCHEMA', env['DATABASE_SCHEMA'])
+    pg_str =psycopg_connection_string(docker_compose_path)
     if overwrite_append == '-append':
         cmd = [
             'ogr2ogr',
             overwrite_append,
             '-t_srs', "EPSG:{}".format(srs),
             '-nln', layer_name,
+            '-lco', 'SCHEMA={}'.format(schema),
             '-F', 'PostgreSQL', 'PG:' + pg_str,
             full_path
         ]
@@ -240,7 +248,7 @@ def load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, overwr
             overwrite_append,
             '-t_srs', "EPSG:{}".format(srs),
             '-nln', layer_name,
-            '-lco', 'GEOMETRY_NAME=wkb_geometry',
+            '-lco', 'SCHEMA={}'.format(schema),
             '-F', 'PostgreSQL', 'PG:' + pg_str,
             full_path
         ]

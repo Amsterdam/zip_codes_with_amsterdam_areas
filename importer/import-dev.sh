@@ -9,11 +9,11 @@ export DATABASE_PORT="5444"
 # curl "https://data.nlextract.nl/bag/postgis/bag-laatst.backup" --output /data/bag-laatst.backup
 # pg_restore --no-owner --no-privileges -d bag /data/bag-laatst.backup
 
-# Download address coordinates of Amsterdam (15.000 per page request)
-#python download_from_wfs.py -u https://geodata.nationaalgeoregister.nl/inspireadressen/wfs -s 28992 -l inspireadressen -o /data -j json -d ../docker-compose.yml -f inspireadressen:woonplaats,Amsterdam
-
 # This contains also panden, but was too slow (1000 per page)
 # python download_from_wfs.py -u https://geodata.nationaalgeoregister.nl/bag/wfs -s 28992 -l ligplaats,standplaats,verblijfsobject -o /data -d ../docker-compose.yml -f bag:woonplaats,Amsterdam
+
+# Download address coordinates of Amsterdam (15.000 per page request)
+python download_from_wfs.py -u https://geodata.nationaalgeoregister.nl/inspireadressen/wfs -s 28992 -l inspireadressen -o /data -j json -d ../docker-compose.yml -f inspireadressen:woonplaats,Amsterdam
 
 # Download all areas
 python download_from_wfs.py -u https://map.data.amsterdam.nl/maps/gebieden -s 28992 -l stadsdeel,gebiedsgerichtwerken,buurtcombinatie,buurt -o /data -j geojson -d ../docker-compose.yml

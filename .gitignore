@@ -26,3 +26,4 @@ __pycache__
 
 # Python virtual environement:
 /.venv
+/venv
