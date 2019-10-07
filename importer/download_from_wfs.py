@@ -195,7 +195,7 @@ def get_layer_from_wfs(url_wfs, layer_name, srs, filter_properties, startindex, 
     return response
 
 
-def psycopg_connection_string(docker_compose_path="docker-compose.yml", docker_port=0):
+def psycopg_connection_string(docker_compose_path="docker-compose.yml"):
     """
     Postgres connection string for psycopg2.
 
@@ -209,16 +209,9 @@ def psycopg_connection_string(docker_compose_path="docker-compose.yml", docker_p
     config = yaml.load(open(docker_compose_path), Loader=yaml.SafeLoader)
     env = config["services"]["importer"]["environment"]
 
-    if docker_port == 1:
-        port = re.findall('\d+', config["services"]["database"]["ports"][0].split(':')[1])[0]
-        host = 'database'
-    else:
-        port = re.findall('\d+', config["services"]["database"]["ports"][0].split(':')[0])[0]
-        host = env['DATABASE_HOST']
-
     pg_config = 'host={} port={} user={} dbname={} password={}'.format(
-            host,
-            port,
+            env['DATABASE_HOST'],
+            os.getenv('DATABASE_PORT', env['DATABASE_PORT']),
             env['DATABASE_USER'],
             env['DATABASE_NAME'],
             env['DATABASE_PASSWORD']
@@ -227,12 +220,12 @@ def psycopg_connection_string(docker_compose_path="docker-compose.yml", docker_p
     return pg_config
 
 
-def load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, docker_port, overwrite_append):
+def load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, overwrite_append):
     """
     Get a geojson and load it into postgres using ogr2ogr
     and the docker compose used environment fields.
     """
-    pg_str =psycopg_connection_string(docker_postgres, docker_port)
+    pg_str =psycopg_connection_string(docker_postgres)
     if overwrite_append == '-append':
         cmd = [
             'ogr2ogr',
@@ -255,7 +248,7 @@ def load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, docker
     run_command_sync(cmd)
 
 
-def get_multiple_geojson_from_wfs(url_wfs, srs, layer_names, output_folder, output_format, docker_postgres, docker_port, filter_properties):
+def get_multiple_geojson_from_wfs(url_wfs, srs, layer_names, output_folder, output_format, docker_postgres, filter_properties):
     """
     Get all layers and save them as a geojson
 
@@ -296,7 +289,7 @@ def get_multiple_geojson_from_wfs(url_wfs, srs, layer_names, output_folder, outp
             with open(full_path, 'w') as outfile:
                 json.dump(geojson, outfile)
             if docker_postgres:
-                load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, docker_port, overwrite_append)
+                load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, overwrite_append)
             counter += len(geojson["features"])
             logger.info("{}%  done, {} of {} added".format(round(counter/number_of_features * 100, 1), counter, number_of_features))
             page += 1
@@ -341,15 +334,10 @@ def parser():
         choices=["json", "geojson"],
         help="choose srs (default: %(default)s)")
     parser.add_argument(
-        "-d", "--docker_postgres",
+        "-d", "--docker_config",
         type=str,
         default=None,
         help="Set the location of docker-compose path, for example ../docker-compose.yml")  # noqa
-    parser.add_argument(
-        "-p", "--docker_port",
-        type=int,
-        default=0,
-        help="0 sets localhost and external docker port. Use 1 when running in docker.")  # noqa
     parser.add_argument(
         "-f", "--filter_properties",
         type=str,
@@ -370,8 +358,7 @@ def main():
         args.layer_names[0],
         args.output_folder,
         args.output_format,
-        args.docker_postgres,
-        args.docker_port,
+        args.docker_config,
         args.filter_properties
     )
 

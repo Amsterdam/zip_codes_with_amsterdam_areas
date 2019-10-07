@@ -25,13 +25,9 @@ def logger():
 
 
 logger = logger()
-#from sqlalchemy import create_engine
-# from sqlalchemy.sql import select
-
-# logger = logging.getLogger(__name__)
 
 
-def psycopg_connection_string(docker_compose_path="docker-compose.yml", docker_port=0):
+def psycopg_connection_string(docker_compose_path="docker-compose.yml"):
     """
     Postgres connection string for psycopg2.
 
@@ -43,23 +39,16 @@ def psycopg_connection_string(docker_compose_path="docker-compose.yml", docker_p
     """
 
     config = yaml.load(open(docker_compose_path), Loader=yaml.SafeLoader)
-    env = config["services"]["database"]["environment"]
-
-    if docker_port == 1:
-        port = re.findall('\d+', config["services"]["database"]["ports"][0].split(':')[1])[0]
-        host = 'database'
-    else:
-        port = re.findall('\d+', config["services"]["database"]["ports"][0].split(':')[0])[0]
-        host = env['POSTGRES_HOST']
+    env = config["services"]["importer"]["environment"]
 
     pg_config = 'host={} port={} user={} dbname={} password={}'.format(
-            host,
-            port,
-            env['POSTGRES_USER'],
-            env['POSTGRES_DB'],
-            env['POSTGRES_PASSWORD']
+            env['DATABASE_HOST'],
+            env['DATABASE_PORT'],
+            env['DATABASE_USER'],
+            env['DATABASE_NAME'],
+            env['DATABASE_PASSWORD']
         )
-    logger.info("pg_string obtained from {}".format(docker_compose_path))
+    # logger.info("pg_string obtained from {}".format(docker_compose_path))
     return pg_config
 
 
@@ -77,7 +66,7 @@ def execute_sql(docker_compose_path, sql, docker_port=0):
         Executed sql with conn.cursor().execute(sql)
     """
 
-    db_config = psycopg_connection_string(docker_compose_path, docker_port)
+    db_config = psycopg_connection_string(docker_compose_path)
 
     with psycopg2.connect(db_config) as conn:
         logger.info('connected to database')
@@ -114,20 +103,14 @@ def parser():
         "-s","--sql_query",
         type=str,
         help="sql query")
-    parser.add_argument(
-        "-p","--docker_port",
-        type=int,
-        default=0,
-        help="Set docker port to 1 if running in a docker")
     return parser
 
 
 def main():
     args = parser().parse_args()
     logger.info('Using %s', args)
-    execute_sql(args.docker_postgres, args.sql_query, args.docker_port)
+    execute_sql(args.docker_postgres, args.sql_query)
 
 
 if __name__ == '__main__':
     main()
- 
