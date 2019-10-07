@@ -18,7 +18,7 @@ services:
       DATABASE_NAME: zip_codes_areas
       DATABASE_USER: zip_codes_areas
       DATABASE_PASSWORD: insecure
-      DATABASE_SCHEMA: public
+      DATABASE_SCHEMA:
       DATABASE_PORT: 
     command: >
       bash -c "/app/import.sh"  

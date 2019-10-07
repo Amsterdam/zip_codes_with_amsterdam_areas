@@ -230,7 +230,7 @@ def load_geojson_to_postgres(full_path, layer_name, srs, docker_compose_path, ov
     config = yaml.load(open(docker_compose_path), Loader=yaml.SafeLoader)
     env = config["services"]["importer"]["environment"]
 
-    schema = os.getenv('DATABASE_SCHEMA', env['DATABASE_SCHEMA'])
+    schema = os.getenv('DATABASE_SCHEMA', 'public')
     pg_str =psycopg_connection_string(docker_compose_path)
     if overwrite_append == '-append':
         cmd = [
