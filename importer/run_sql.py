@@ -1,7 +1,6 @@
 import argparse
 import os
 import yaml
-import re
 import psycopg2
 from codecs import open
 import logging
@@ -43,7 +42,7 @@ def psycopg_connection_string(docker_compose_path="docker-compose.yml"):
 
     pg_config = 'host={} port={} user={} dbname={} password={}'.format(
             env['DATABASE_HOST'],
-            env['DATABASE_PORT'],
+            os.getenv('DATABASE_PORT', env['DATABASE_PORT']),
             env['DATABASE_USER'],
             env['DATABASE_NAME'],
             env['DATABASE_PASSWORD']

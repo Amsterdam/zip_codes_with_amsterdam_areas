@@ -5,7 +5,6 @@ import yaml
 import time
 import json
 import os
-import re
 from math import ceil
 import argparse
 from datetime import datetime
@@ -47,6 +46,31 @@ def scrub(line):
         else:
             out.append(x)
     return out
+
+
+def psycopg_connection_string(docker_compose_path="docker-compose.yml"):
+    """
+    Postgres connection string for psycopg2.
+
+    Args:
+      full docker-compose path file
+
+    Returns:
+        Returns the psycopg required connection string: 'PG:host= port= user= dbname= password='
+    """
+
+    config = yaml.load(open(docker_compose_path), Loader=yaml.SafeLoader)
+    env = config["services"]["importer"]["environment"]
+
+    pg_config = 'host={} port={} user={} dbname={} password={}'.format(
+            env['DATABASE_HOST'],
+            os.getenv('DATABASE_PORT', env['DATABASE_PORT']),
+            env['DATABASE_USER'],
+            env['DATABASE_NAME'],
+            env['DATABASE_PASSWORD']
+        )
+    # logger.info("pg_string obtained from {}".format(docker_compose_path))
+    return pg_config
 
 
 def run_command_sync(cmd, allow_fail=False):
@@ -101,7 +125,7 @@ def get_number_of_features(url_wfs, layer_name, filter_properties):
         url_wfs, layer_name))
     request_number_of_features = requests.get(url_wfs, params=parameters)
     root = ET.fromstring(request_number_of_features.text)
-    number_of_features = root.attrib['numberMatched'] 
+    number_of_features = root.attrib['numberMatched']
     logger.info("Total of {} features in layer: {}".format(number_of_features, layer_name))
     return int(number_of_features)
 
@@ -195,31 +219,6 @@ def get_layer_from_wfs(url_wfs, layer_name, srs, filter_properties, startindex, 
     return response
 
 
-def psycopg_connection_string(docker_compose_path="docker-compose.yml"):
-    """
-    Postgres connection string for psycopg2.
-
-    Args:
-      full docker-compose path file
-
-    Returns:
-        Returns the psycopg required connection string: 'PG:host= port= user= dbname= password='
-    """
-
-    config = yaml.load(open(docker_compose_path), Loader=yaml.SafeLoader)
-    env = config["services"]["importer"]["environment"]
-
-    pg_config = 'host={} port={} user={} dbname={} password={}'.format(
-            env['DATABASE_HOST'],
-            os.getenv('DATABASE_PORT', env['DATABASE_PORT']),
-            env['DATABASE_USER'],
-            env['DATABASE_NAME'],
-            env['DATABASE_PASSWORD']
-        )
-    # logger.info("pg_string obtained from {}".format(docker_compose_path))
-    return pg_config
-
-
 def load_geojson_to_postgres(full_path, layer_name, srs, docker_postgres, overwrite_append):
     """
     Get a geojson and load it into postgres using ogr2ogr
@@ -269,7 +268,6 @@ def get_multiple_geojson_from_wfs(url_wfs, srs, layer_names, output_folder, outp
         4. output_folder: define the folder to save the files::
 
             path_to_folder/another_folder
-
     """
     layer_names = layer_names.split(',')
 
