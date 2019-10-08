@@ -20,8 +20,15 @@ docker-compose up importer
 
 You can login into the database using localhost:5444 and the username and password used in the docker-compose.yml
 
-
 ## How to run locally
+
+### Create and login to a virtual environment and install packages
+```
+virtualenv --python=$(which python3) venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+### Start the database in a docker and run import script
 ```
 docker-compose up -d database
 cd importer
