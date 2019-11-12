@@ -4,6 +4,7 @@ set -u   # crash on missing env variables
 set -e   # stop on any error
 
 export DATABASE_PORT="5444"
+export DATABASE_HOST="localhost"
 
 # Download all bag data from the Netherlands from a prepared postgres db (takes 2 hours):
 # curl "https://data.nlextract.nl/bag/postgis/bag-laatst.backup" --output /data/bag-laatst.backup
